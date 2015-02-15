@@ -1,6 +1,7 @@
 """Simple and effective inversion of control and dependency injection system.
 """
 import inspect
+import pkgutil
 
 from unittest import TestCase
 from functools import wraps
@@ -63,13 +64,25 @@ def requires(*names, **mapping):
     return wrapper
 
 
-def _resolve(name, stack=set()):
+def scan_modules(name):
+    prefix = name + '.'
+    for importer in pkgutil.iter_importers(prefix):
+        for loader, mod, pkg in pkgutil.iter_modules([importer.path], prefix):
+            if pkg:
+                continue
+            try:
+                __import__(mod)
+            except ImportError:
+                pass
+
+
+def _resolve(name, stack=[]):
     dep = REGISTRY.get(name)
     if not dep:
-        assert name not in stack, 'recursive reference to {}'.format(name)
+        assert name not in stack, 'recursive reference: ' + ' -> '.join(stack)
         assert name in FACTORIES, \
             'unresolved dependency: {}'. format(name)
-        stack.add(name)
+        stack.append(name)
         try:
             dep = REGISTRY.setdefault(name, FACTORIES[name]())
         finally:
