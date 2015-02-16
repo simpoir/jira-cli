@@ -1,5 +1,5 @@
+import inject
 from prettytable import PrettyTable
-from .ioc import requires
 
 BOLD = 1
 FROM_PALETTE = 5
@@ -15,21 +15,18 @@ def make_format(*values):
 DEFAULT_FORMAT = make_format(BOLD)
 
 
-@requires(conf='config')
 class Table(PrettyTable):
+    @inject.param('config')
     def __init__(self, *args, **kwargs):
         super(Table, self).__init__(*args, **kwargs)
+        config = kwargs.pop('config')
         self.__odd = False
-        self.row_odd = self.row_even = self.row_head = DEFAULT_FORMAT
-
-    def set_conf(self, conf):
         self.row_odd = make_format(BG_COLOR, FROM_PALETTE,
-                                   conf.style.row_odd)
+                                   config.style.row_odd)
         self.row_even = make_format(BG_COLOR, FROM_PALETTE,
-                                    conf.style.row_even)
+                                    config.style.row_even)
         self.row_head = make_format(BG_COLOR, FROM_PALETTE,
-                                    conf.style.row_even, BOLD, UNDERSCORE)
-    conf = property(fset=set_conf)
+                                    config.style.row_even, BOLD, UNDERSCORE)
 
     def _stringify_header(self, options):
         head = super(Table, self)._stringify_header(options)

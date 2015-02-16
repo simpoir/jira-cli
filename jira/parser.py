@@ -1,13 +1,14 @@
 from argparse import ArgumentParser
 
-from .ioc import provides
 
+def make_parser():
+    parser = ArgumentParser(prog="jira")
+    subparsers = parser.add_subparsers()
 
-@provides('parser')
-class JiraParser(ArgumentParser):
-    def __init__(self):
-        super(JiraParser, self).__init__(prog="jira")
-        self.add_argument('issue',
-                          metavar='issue',
-                          help="the issue number",
-                          nargs="?")
+    from .cmds.config import ConfigCommand, PaletteCommand
+    ConfigCommand(subparsers)
+    PaletteCommand(subparsers)
+    from .cmds.issue import ShowIssue
+    ShowIssue(subparsers)
+
+    return parser
