@@ -24,6 +24,9 @@ def run():
 
     parser = make_parser()
     args = parser.parse_args()
+    if args.debug:
+        import logging
+        logging.basicConfig(level=0)
 
     if not config.jira.host and not getattr(args, 'setup', False):
         print('This is all cute, but you have not configured me. Try "setup"')

@@ -1,4 +1,5 @@
 import inject
+import logging
 import requests
 
 from requests import HTTPError
@@ -7,13 +8,26 @@ import requests.packages.urllib3
 requests.packages.urllib3.disable_warnings()
 
 
+LOG = logging.getLogger(__name__)
+ALIASES = {
+    'unassigned': 'assignee IS NULL',
+    'epic': 'epic link',
+}
+
+
 def jqv(s):
+    return "\"{}\"".format(jqe(s))
+
+
+def jqe(s):
     """JQL escape value
     :param s: a value
     """
+    for k, v in ALIASES.items():
+        s = s.replace(k, v)
     s = s.replace('\\', '\\\\')
     s = s.replace('"', '\\"')
-    return "\"{}\"".format(s)
+    return s
 
 
 class RestClient(object):
@@ -43,8 +57,13 @@ class RestClient(object):
 
     @staticmethod
     @inject.param('config')
-    def find(config, fields=('summary', 'status'), **kwargs):
-        jql = ' AND '.join('%s=%s' % (k, jqv(v)) for k, v in kwargs.items())
+    def find(*args, config, fields=('summary', 'status'), **kwargs):
+        jql = ' AND '.join('%s=%s' % (jqv(k), jqv(v))
+                           for k, v in kwargs.items())
+        if args:
+            jql = ' AND '.join(jqe(a) for a in args) + ' AND ' + jql
+        jql += ' order by rank asc'
+        LOG.debug("generated jql: %s", jql)
         url = "https://{}/rest/api/2/search".format(config.jira.host)
         result = requests.get(url,
                               auth=(config.jira.username, config.jira.password),

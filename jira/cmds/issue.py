@@ -13,8 +13,9 @@ class FindIssues(object):
     @staticmethod
     @inject.param('render')
     def run(args, render):
-        filters = dict(f.split(':') for f in args.filters)
-        issues = issue.find(**filters)
+        filters = dict(f.split(':') for f in args.filters if ':' in f)
+        args = [f for f in args.filters if ':' not in f]
+        issues = issue.find(*args, **filters)
         rendered = render(
             issues,
             mapping=[
