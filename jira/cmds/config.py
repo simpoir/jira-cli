@@ -12,6 +12,7 @@ class ConfigCommand(object):
         sub.add_argument('-s', '--show', action='store_true',
                          help='just show the configuration')
         sub.set_defaults(cmd=self.run)
+        sub.set_defaults(setup=True)
 
     @staticmethod
     @inject.param('config')
@@ -28,7 +29,7 @@ class ConfigCommand(object):
             test = input('Test new configuration [Y/n]:')
             if test.lower() in ['y', 'n']:
                 if test == 'y':
-                    user = api.user.get(config.username)
+                    user = api.user.get(config.jira.username)
                     print('Seems you are good to go, %s' % user['displayName'])
                 break
 

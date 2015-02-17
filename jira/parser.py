@@ -8,7 +8,10 @@ def make_parser():
     from .cmds.config import ConfigCommand, PaletteCommand
     ConfigCommand(subparsers)
     PaletteCommand(subparsers)
-    from .cmds.issue import ShowIssue
+    from .cmds.issue import ShowIssue, FindIssues, MyIssues, Resolve
     ShowIssue(subparsers)
+    FindIssues(subparsers)
+    MyIssues(subparsers)
+    Resolve(subparsers)
 
     return parser

@@ -22,16 +22,16 @@ def run():
 
     config = inject.instance('config')
 
-    if not config.jira.host:
-        from .cmds.config import ConfigCommand
-        ConfigCommand().run()
-
     parser = make_parser()
     args = parser.parse_args()
 
-    try:
+    if not config.jira.host and not getattr(args, 'setup', False):
+        print('This is all cute, but you have not configured me. Try "setup"')
+        return
+
+    if hasattr(args, 'cmd'):
         args.cmd(args)
-    except AttributeError:
+    else:
         parser.print_help()
 
 

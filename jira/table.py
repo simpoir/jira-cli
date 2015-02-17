@@ -40,11 +40,26 @@ class Table(PrettyTable):
         return self.row_odd(row)
 
 
-def prettify_list(data):
-    t = Table([])
-    t.align[1] = 'l'
+def prettify_list(data, mapping=None):
+    t = Table(x[0] for x in mapping)
+    t.align = 'l'
     for l in data:
-        t.add_row(l)
+        if mapping:
+            row = []
+            for lbl, keys in mapping:
+                keys = keys.partition('.')
+                v = l[keys[0]]
+                for k in keys[2].split('.'):
+                    if not k:
+                        break
+                    v = v.get(k)
+                    if not v:
+                        v = ''
+                        break
+                row.append(v)
+            t.add_row(row)
+        else:
+            t.add_row(l)
     return t
 
 
@@ -73,7 +88,7 @@ def prettify_dict(data, mapping=None):
 def prettify(obj, **kwargs):
     t = None
     if isinstance(obj, (list, tuple)):
-        t = prettify_list(obj)
+        t = prettify_list(obj, **kwargs)
     elif isinstance(obj, dict):
         t = prettify_dict(obj, **kwargs)
     t.border = False
