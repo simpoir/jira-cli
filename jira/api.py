@@ -1,8 +1,19 @@
 import inject
 import requests
 
+from requests import HTTPError
+
 import requests.packages.urllib3
 requests.packages.urllib3.disable_warnings()
+
+
+def jqv(s):
+    """JQL escape value
+    :param s: a value
+    """
+    s = s.replace('\\', '\\\\')
+    s = s.replace('"', '\\"')
+    return "\"{}\"".format(s)
 
 
 class RestClient(object):
@@ -33,11 +44,17 @@ class RestClient(object):
     @staticmethod
     @inject.param('config')
     def find(config, fields=('summary', 'status'), **kwargs):
-        jql = ' AND '.join('%s=%s' % (k, v) for k, v in kwargs.items())
+        jql = ' AND '.join('%s=%s' % (k, jqv(v)) for k, v in kwargs.items())
         url = "https://{}/rest/api/2/search".format(config.jira.host)
-        return requests.get(url, auth=(config.jira.username, config.jira.password),
-                            params={'jql': jql, 'fields': ','.join(fields)},
-                            verify=False).json()['issues']
+        result = requests.get(url,
+                              auth=(config.jira.username, config.jira.password),
+                              params={'jql': jql, 'fields': ','.join(fields)},
+                              verify=False)
+        try:
+            result.raise_for_status()
+        except HTTPError:
+            raise Exception(result.text)
+        return result.json()['issues']
 issue = RestClient()
 
 
