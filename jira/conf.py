@@ -2,6 +2,12 @@ import os
 from configparser import RawConfigParser, NoOptionError
 
 
+# pseudo config schema
+_BOOL_KEYS = (
+    'ssl_verify',
+)
+
+
 class ConfigSection(object):
     def __init__(self, conf, name):
         super().__init__()
@@ -13,7 +19,10 @@ class ConfigSection(object):
             return super(ConfigSection, self).__getattribute__(name)
         except AttributeError:
             try:
-                return super().__getattribute__('_conf').get(self._name, name)
+                _conf = super().__getattribute__('_conf')
+                if name in _BOOL_KEYS:
+                    return _conf.getboolean(self._name, name)
+                return _conf.get(self._name, name)
             except NoOptionError as e:
                 raise AttributeError(e)
 
@@ -38,6 +47,7 @@ class Config(object):
                 'host': '',
                 'username': '',
                 'password': '',
+                'ssl_verify': False,
             },
             'style': {
                 'row_even': 235,

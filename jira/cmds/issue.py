@@ -94,3 +94,27 @@ class Resolve(object):
             ('assignee', 'fields.assignee.displayName'),
             ('link', 'self'),
             ]))
+
+
+class Grab(object):
+    def __init__(self, subparsers):
+        super().__init__()
+        sub = subparsers.add_parser('grab',
+                                    help='grab an issue')
+        sub.add_argument('issue_id')
+        sub.set_defaults(cmd=self.run)
+
+    @staticmethod
+    @inject.param('render')
+    @inject.param('config')
+    def run(args, render, config):
+        issue.assign(args.issue_id, config.jira.username)
+        print(render(issue.get(args.issue_id), mapping=[
+            ('issue', 'key'),
+            ('summary', 'fields.summary'),
+            ('status', 'fields.status.name'),
+            ('issue type', 'fields.issuetype.name'),
+            ('reporter', 'fields.reporter.displayName'),
+            ('assignee', 'fields.assignee.displayName'),
+            ('link', 'self'),
+            ]))
