@@ -48,7 +48,7 @@ def prettify_list(data, mapping=None):
             row = []
             for lbl, keys in mapping:
                 keys = keys.partition('.')
-                v = l[keys[0]]
+                v = l.get(keys[0], '')
                 for k in keys[2].split('.'):
                     if not k:
                         break

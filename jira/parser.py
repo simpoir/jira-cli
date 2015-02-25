@@ -10,11 +10,12 @@ def make_parser():
     from .cmds.config import ConfigCommand, PaletteCommand
     ConfigCommand(subparsers)
     PaletteCommand(subparsers)
-    from .cmds.issue import ShowIssue, FindIssues, MyIssues, Resolve, Grab
+    from .cmds.issue import ShowIssue, FindIssues, MyIssues, Resolve, Grab, Log
     ShowIssue(subparsers)
     FindIssues(subparsers)
     MyIssues(subparsers)
     Resolve(subparsers)
     Grab(subparsers)
+    Log(subparsers)
 
     return parser

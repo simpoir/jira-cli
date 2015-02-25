@@ -1,8 +1,9 @@
-import functools
 import inject
 import logging
 import requests
+import functools
 
+from datetime import datetime, timezone
 from requests import HTTPError
 
 import requests.packages.urllib3
@@ -15,6 +16,7 @@ ALIASES = {
     'unresolved': 'resolution IS NULL',
     'epic': '"epic link"',
 }
+ISO_DATE = '%Y-%m-%dT%H:%M:%S.000%z'
 
 
 def jqv(s):
@@ -108,3 +110,22 @@ class User(object):
         url = "https://{}/rest/api/2/user".format(config.jira.host)
         return http_get(url, params={'username': username}).json()
 user = User()
+
+
+class Worklog(object):
+    @inject.param('config')
+    def all(self, issue_id, config):
+        url = "https://{}/rest/api/2/issue/{}/worklog".format(
+            config.jira.host, issue_id)
+        return http_get(url).json()['worklogs']
+
+    @inject.param('config')
+    def add(self, issue_id, config, **kwargs):
+        url = "https://{}/rest/api/2/issue/{}/worklog".format(
+            config.jira.host, issue_id)
+        data = kwargs.copy()
+        data.setdefault('started',
+                        datetime.now(timezone.utc).strftime(ISO_DATE))
+        ret = http_post(url, json=data)
+        ret.raise_for_status()
+worklog = Worklog()

@@ -1,4 +1,4 @@
-from ..api import issue
+from ..api import issue, worklog
 import inject
 
 
@@ -69,7 +69,6 @@ class ShowIssue(object):
             ('issue type', 'fields.issuetype.name'),
             ('reporter', 'fields.reporter.displayName'),
             ('assignee', 'fields.assignee.displayName'),
-            ('link', 'self'),
         ]))
 
 
@@ -92,7 +91,6 @@ class Resolve(object):
             ('issue type', 'fields.issuetype.name'),
             ('reporter', 'fields.reporter.displayName'),
             ('assignee', 'fields.assignee.displayName'),
-            ('link', 'self'),
             ]))
 
 
@@ -116,5 +114,34 @@ class Grab(object):
             ('issue type', 'fields.issuetype.name'),
             ('reporter', 'fields.reporter.displayName'),
             ('assignee', 'fields.assignee.displayName'),
-            ('link', 'self'),
             ]))
+
+
+class Log(object):
+    def __init__(self, subparsers):
+        super().__init__()
+        sub = subparsers.add_parser('log',
+                                    help='shows and add worklog entries')
+        sub.add_argument('issue_id')
+        sub.add_argument('-t', '--time', help='a worklog entry (?h ?m)')
+        sub.add_argument('-c', '--comment', help='adds comment to the entry')
+        sub.set_defaults(cmd=self.run)
+
+    @staticmethod
+    @inject.param('render')
+    @inject.param('config')
+    def run(args, render, config):
+        if args.comment and not args.time:
+            print('Adding a timelog comment requires setting --time')
+            return
+        if args.time:
+            worklog.add(args.issue_id,
+                        comment=args.comment,
+                        timeSpent=args.time)
+
+        print(render(worklog.all(args.issue_id), mapping=[
+            ('author', 'author.displayName'),
+            ('date', 'started'),
+            ('time spent', 'timeSpent'),
+            ('comment', 'comment'),
+        ]))
